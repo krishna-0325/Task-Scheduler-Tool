@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Task Scheduler</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="logo">
+        <div class="logo-icon">⚡</div>
+        <span class="logo-text">TaskFlow</span>
+      </div>
+      <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">☰</button>
+    </div>
+
+    <nav class="sidebar-nav">
+      <button class="nav-item active" data-view="dashboard" onclick="switchView('dashboard', this)">
+        <span class="nav-icon">▦</span>
+        <span class="nav-label">Dashboard</span>
+      </button>
+      <button class="nav-item" data-view="tasks" onclick="switchView('tasks', this)">
+        <span class="nav-icon">✓</span>
+        <span class="nav-label">All Tasks</span>
+      </button>
+      <button class="nav-item" data-view="calendar" onclick="switchView('calendar', this)">
+        <span class="nav-icon">◻</span>
+        <span class="nav-label">Calendar</span>
+      </button>
+    </nav>
+
+    <div class="sidebar-filters">
+      <p class="filter-heading">Filter by Status</p>
+      <button class="filter-chip active" data-filter="status" data-value="" onclick="setFilter('status','',this)">All</button>
+      <button class="filter-chip" data-filter="status" data-value="pending" onclick="setFilter('status','pending',this)">Pending</button>
+      <button class="filter-chip" data-filter="status" data-value="in_progress" onclick="setFilter('status','in_progress',this)">In Progress</button>
+      <button class="filter-chip" data-filter="status" data-value="completed" onclick="setFilter('status','completed',this)">Completed</button>
+    </div>
+
+    <div class="sidebar-filters">
+      <p class="filter-heading">Filter by Priority</p>
+      <button class="filter-chip active" data-filter="priority" data-value="" onclick="setFilter('priority','',this)">All</button>
+      <button class="filter-chip priority-high" data-filter="priority" data-value="high" onclick="setFilter('priority','high',this)">High</button>
+      <button class="filter-chip priority-medium" data-filter="priority" data-value="medium" onclick="setFilter('priority','medium',this)">Medium</button>
+      <button class="filter-chip priority-low" data-filter="priority" data-value="low" onclick="setFilter('priority','low',this)">Low</button>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main">
+
+    <!-- Top Bar -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <h1 class="page-title" id="pageTitle">Dashboard</h1>
+        <div class="search-wrap">
+          <input type="text" id="searchInput" class="search-input" placeholder="Search tasks…" oninput="debounceSearch(this.value)" />
+          <span class="search-icon">🔍</span>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <button class="btn btn-primary" onclick="openModal()">+ New Task</button>
+      </div>
+    </header>
+
+    <!-- Dashboard View -->
+    <section class="view" id="view-dashboard">
+      <div class="stats-grid">
+        <div class="stat-card stat-total">
+          <div class="stat-value" id="statTotal">—</div>
+          <div class="stat-label">Total Tasks</div>
+        </div>
+        <div class="stat-card stat-pending">
+          <div class="stat-value" id="statPending">—</div>
+          <div class="stat-label">Pending</div>
+        </div>
+        <div class="stat-card stat-progress">
+          <div class="stat-value" id="statProgress">—</div>
+          <div class="stat-label">In Progress</div>
+        </div>
+        <div class="stat-card stat-done">
+          <div class="stat-value" id="statDone">—</div>
+          <div class="stat-label">Completed</div>
+        </div>
+      </div>
+
+      <div class="dashboard-grid">
+        <div class="dashboard-panel">
+          <h2 class="panel-title">Priority Breakdown</h2>
+          <div class="priority-bars" id="priorityBars"></div>
+        </div>
+        <div class="dashboard-panel">
+          <h2 class="panel-title">Top Categories</h2>
+          <div class="category-list" id="categoryList"></div>
+        </div>
+        <div class="dashboard-panel full-width">
+          <h2 class="panel-title">Recent Tasks</h2>
+          <div class="task-list" id="recentTasks"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tasks View -->
+    <section class="view hidden" id="view-tasks">
+      <div class="tasks-toolbar">
+        <div class="task-count" id="taskCount">Loading…</div>
+        <div class="sort-wrap">
+          <label for="sortSelect">Sort by:</label>
+          <select id="sortSelect" onchange="sortTasks(this.value)">
+            <option value="created_at">Date Created</option>
+            <option value="due_date">Due Date</option>
+            <option value="priority">Priority</option>
+            <option value="status">Status</option>
+          </select>
+        </div>
+      </div>
+      <div class="task-list" id="allTasksList"></div>
+    </section>
+
+    <!-- Calendar View -->
+    <section class="view hidden" id="view-calendar">
+      <div class="calendar-header">
+        <button class="btn btn-ghost" onclick="changeMonth(-1)">‹ Prev</button>
+        <h2 class="calendar-month" id="calendarMonth"></h2>
+        <button class="btn btn-ghost" onclick="changeMonth(1)">Next ›</button>
+      </div>
+      <div class="calendar-grid" id="calendarGrid"></div>
+    </section>
+
+  </main>
+
+  <!-- Modal -->
+  <div class="modal-overlay" id="modalOverlay" onclick="handleOverlayClick(event)">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="modal-header">
+        <h2 class="modal-title" id="modalTitle">New Task</h2>
+        <button class="modal-close" onclick="closeModal()" aria-label="Close">✕</button>
+      </div>
+      <form class="modal-body" id="taskForm" onsubmit="submitTask(event)">
+        <div class="form-group">
+          <label for="taskTitle">Title <span class="required">*</span></label>
+          <input type="text" id="taskTitle" required placeholder="What needs to be done?" />
+        </div>
+        <div class="form-group">
+          <label for="taskDescription">Description</label>
+          <textarea id="taskDescription" rows="3" placeholder="Add details…"></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="taskPriority">Priority</label>
+            <select id="taskPriority">
+              <option value="low">Low</option>
+              <option value="medium" selected>Medium</option>
+              <option value="high">High</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="taskStatus">Status</label>
+            <select id="taskStatus">
+              <option value="pending" selected>Pending</option>
+              <option value="in_progress">In Progress</option>
+              <option value="completed">Completed</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="taskDue">Due Date</label>
+            <input type="date" id="taskDue" />
+          </div>
+          <div class="form-group">
+            <label for="taskCategory">Category</label>
+            <input type="text" id="taskCategory" placeholder="e.g. Work, Personal…" list="categoryOptions" />
+            <datalist id="categoryOptions"></datalist>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="submitBtn">Create Task</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Delete Confirm -->
+  <div class="modal-overlay hidden" id="deleteOverlay">
+    <div class="modal modal-sm">
+      <div class="modal-header">
+        <h2 class="modal-title">Delete Task?</h2>
+      </div>
+      <div class="modal-body">
+        <p>This action cannot be undone.</p>
+        <div class="modal-footer">
+          <button class="btn btn-ghost" onclick="closeDelete()">Cancel</button>
+          <button class="btn btn-danger" onclick="confirmDelete()">Delete</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
