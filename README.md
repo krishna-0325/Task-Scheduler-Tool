@@ -1,2 +1,129 @@
+INTERN ID- CITS2697
+
+
 # Task-Scheduler-Tool
 TaskFlow — Task Scheduler Tool is a full-stack web application built with HTML5, CSS3, JavaScript frontend and FastAPI Python backend with SQLite database. It enables users to create, manage, filter, and track tasks by priority, status, and due date, featuring a real-time dashboard, calendar view, and REST API.
+
+
+# ⚡ Task Scheduler — TaskFlow
+
+A full-stack task scheduling application with a FastAPI backend, SQLite database, and a modern HTML5/CSS3/JS frontend.
+
+---
+
+## 📁 Project Structure
+
+```
+task-scheduler/
+├── backend/
+│   ├── main.py            ← FastAPI app & SQLite logic
+│   ├── requirements.txt   ← Python dependencies
+│   └── tasks.db           ← SQLite DB (auto-created on first run)
+└── frontend/
+    ├── index.html         ← HTML5 entry point
+    ├── style.css          ← CSS3 design system (dark theme)
+    └── app.js             ← Vanilla JS frontend logic
+```
+
+---
+
+## 🚀 Setup & Run
+
+### 1. Backend (FastAPI)
+
+```bash
+cd backend
+
+# Create virtual environment (recommended)
+python -m venv venv
+source venv/bin/activate        # Windows: venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Start the server
+uvicorn main:app --reload --port 8000
+```
+
+The API runs at: **http://localhost:8000**  
+Interactive docs: **http://localhost:8000/docs**
+
+---
+
+### 2. Frontend
+
+Open `frontend/index.html` directly in your browser, **or** serve it with a simple HTTP server:
+
+```bash
+cd frontend
+
+# Option A — Python
+python -m http.server 5500
+
+# Option B — Node
+npx serve .
+```
+
+Then open **http://localhost:5500** in your browser.
+
+> ⚠️ The frontend expects the backend at `http://localhost:8000`. Make sure the backend is running first.
+
+---
+
+## 🔌 API Endpoints
+
+| Method | Path              | Description               |
+|--------|-------------------|---------------------------|
+| GET    | `/tasks`          | List tasks (filterable)   |
+| POST   | `/tasks`          | Create a task             |
+| GET    | `/tasks/{id}`     | Get a single task         |
+| PUT    | `/tasks/{id}`     | Update a task             |
+| DELETE | `/tasks/{id}`     | Delete a task             |
+| GET    | `/stats`          | Dashboard statistics      |
+| GET    | `/categories`     | List all categories       |
+
+### Query Parameters for `GET /tasks`
+- `status` — `pending` | `in_progress` | `completed`
+- `priority` — `low` | `medium` | `high`
+- `category` — any string
+- `search` — searches title & description
+
+---
+
+## ✨ Features
+
+- **Dashboard** — stats cards, priority breakdown bars, category summary, recent tasks
+- **All Tasks** — filterable, sortable task list with inline quick-complete
+- **Calendar View** — monthly calendar with due-date task dots
+- **Create / Edit / Delete** tasks via modal form
+- **Filters** — by status and priority (sidebar)
+- **Search** — live debounced search
+- **Keyboard shortcuts** — `N` to open new task, `Esc` to close modal
+- **Overdue detection** — tasks past due date shown with ⚠ indicator
+- **Persistent SQLite** — all data survives restarts
+
+---
+
+## 🛠 Tech Stack
+
+| Layer    | Technology                      |
+|----------|---------------------------------|
+| Frontend | HTML5, CSS3 (custom design system), Vanilla JS |
+| Backend  | Python 3.10+, FastAPI, Uvicorn  |
+| Database | SQLite (via Python `sqlite3`)   |
+
+---
+
+## 📝 Task Schema
+
+| Field       | Type    | Values                              |
+|-------------|---------|-------------------------------------|
+| id          | integer | Auto-generated                      |
+| title       | string  | Required                            |
+| description | string  | Optional                            |
+| priority    | string  | `low` / `medium` / `high`           |
+| status      | string  | `pending` / `in_progress` / `completed` |
+| due_date    | string  | ISO date `YYYY-MM-DD`               |
+| category    | string  | Free text (default: "General")      |
+| created_at  | string  | ISO datetime                        |
+| updated_at  | string  | ISO datetime                        |
